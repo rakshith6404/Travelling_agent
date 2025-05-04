@@ -35,8 +35,20 @@
                     return;
                 }
 
+                // Create a new div for the user's message
+                const userMessageDiv = document.createElement('div');
+                userMessageDiv.classList.add('user-message');
+                userMessageDiv.textContent = `You: ${message}`;
+                agentResponseDiv.appendChild(userMessageDiv);
+
+                // Create a new div for the agent's response
+                const agentThinkingDiv = document.createElement('div');
+                agentThinkingDiv.classList.add('agent-message', 'thinking');
+                agentThinkingDiv.textContent = 'Agent is thinking...';
+                agentResponseDiv.appendChild(agentThinkingDiv);
+
                 try {
-                    const response = await fetch('https://travelling-agent-production-up.railway.app/chat', {
+                    const response = await fetch('https://travelling-agent.onrender.com/chat', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -46,14 +58,16 @@
 
                     if (!response.ok) {
                         const errorText = await response.text();
-                        agentResponseDiv.textContent = `Error: ${response.status} - ${errorText}`;
+                        agentThinkingDiv.textContent = `Error: ${response.status} - ${errorText}`;
                         return;
                     }
 
                     const data = await response.json();
-                    agentResponseDiv.textContent = data.response;
+                    agentThinkingDiv.textContent = `Agent: ${data.response}`;
+                    agentThinkingDiv.classList.remove('thinking'); // Remove "thinking" indicator
                 } catch (error) {
-                    agentResponseDiv.textContent = `Error: Could not connect to the server. ${error}`;
+                    agentThinkingDiv.textContent = `Error: Could not connect to the server. ${error}`;
+                    agentThinkingDiv.classList.remove('thinking');
                 }
             });
         });
