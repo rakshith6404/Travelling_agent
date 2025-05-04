@@ -1,18 +1,25 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 from travel_planning_agent import agent  # Imports the 'agent' module (agent.py)
 from dotenv import load_dotenv
 
+# Load environment variables from travel_planning_agent/.env
 load_dotenv('travel_planning_agent/.env')
 
+# Initialize Flask app
 app = Flask(__name__)
+CORS(app)  # Enable CORS to allow frontend to talk to backend
 
+# Get Google API key from environment variables
 google_api_key = os.environ.get("GOOGLE_API_KEY")
 if not google_api_key:
     raise ValueError("GOOGLE_API_KEY environment variable not set")
 
+# Set up the travel agent from your agent module
 travel_agent = agent.root_agent  # Access the 'root_agent' from the imported 'agent' module
 
+# Define the /chat endpoint
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.get_json()
@@ -25,7 +32,13 @@ def chat():
         response = travel_agent.converse(user_message)
         return jsonify({"response": response.reply})
     except Exception as e:
-        return jsonify({"error": f"Error processing message: {e}"}), 500
+        return jsonify({"error": f"Error processing message: {str(e)}"}), 500
 
+# Root route to test if API is live
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({"message": "Traveler Agent API is running."})
+
+# Run the app
 if __name__ == '__main__':
     app.run(debug=False, port=os.environ.get("PORT", 5000))
